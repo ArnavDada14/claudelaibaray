@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRCRCE Engineering Library Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#E0F2FE',
+            indigo: '#6366F1',
+            mint: '#A7F3D0',
+            amber: '#FDE68A',
+            background: '#F8FAFC'
+          },
+          borderRadius: {
+            'xl': '16px',
+            '2xl': '24px',
+            '3xl': '32px'
+          },
+          animation: {
+            'bounce-in': 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+            'slide-up': 'slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            'fade-in': 'fadeIn 0.3s ease-out',
+            'scale-pop': 'scalePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            'wiggle': 'wiggle 0.5s ease-in-out',
+            'shimmer': 'shimmer 1.5s infinite'
+          },
+          keyframes: {
+            bounceIn: {
+              '0%': { opacity: '0', transform: 'scale(0.3) translateY(20px)' },
+              '50%': { transform: 'scale(1.05) translateY(-5px)' },
+              '70%': { transform: 'scale(0.9) translateY(2px)' },
+              '100%': { opacity: '1', transform: 'scale(1) translateY(0)' }
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(30px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            slideInRight: {
+              '0%': { opacity: '0', transform: 'translateX(100%)' },
+              '100%': { opacity: '1', transform: 'translateX(0)' }
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            scalePop: {
+              '0%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(0.95)' },
+              '100%': { transform: 'scale(1)' }
+            },
+            wiggle: {
+              '0%, 100%': { transform: 'rotate(-3deg)' },
+              '50%': { transform: 'rotate(3deg)' }
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' }
+            },
+            pageTurn: {
+              '0%': { transform: 'rotateY(0deg)' },
+              '100%': { transform: 'rotateY(-180deg)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+    }
+
+    .bento-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .bento-card:hover {
+      transform: scale(1.03) translateY(-4px);
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+    }
+
+    .bento-card:active {
+      transform: scale(0.97);
+    }
+
+    .btn-squish {
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-squish:active {
+      transform: scale(0.92);
+    }
+
+    .page-flip {
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .page-flip.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 50%, #EEF2FF 100%);
+    }
+
+    .indigo-gradient {
+      background: linear-gradient(135deg, #6366F1 0%, #818CF8 100%);
+    }
+
+    /* Toast Animations */
+    .toast-enter {
+      transform: translateX(100%) scale(0.9);
+      opacity: 0;
+    }
+
+    .toast-enter-active {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .toast-exit {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+
+    .toast-exit-active {
+      transform: translateX(100%) scale(0.9);
+      opacity: 0;
+      transition: all 0.3s ease-in;
+    }
+
+    /* Confetti Animation */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      animation: confetti-fall 3s ease-out forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(400px) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Loading Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #6366F1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4F46E5;
+    }
+
+    /* Modal Spring Animation */
+    .modal-spring {
+      transform-origin: center;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-hidden {
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+      pointer-events: none;
+    }
+
+    .modal-visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* Stagger animation delays */
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.1s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.2s; }
+    .stagger-5 { animation-delay: 0.25s; }
+    .stagger-6 { animation-delay: 0.3s; }
+  </style>
+</head>
+<body class="bg-background min-h-screen">
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="fixed inset-0 gradient-bg z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Logo Animation -->
+      <div class="text-center mb-8 animate-bounce-in">
+        <div class="inline-flex items-center justify-center w-20 h-20 indigo-gradient rounded-3xl shadow-lg mb-4">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">FRCRCE Library</h1>
+        <p class="text-gray-500">Engineering Portal for CSE & ECE</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="glass rounded-3xl p-8 shadow-xl animate-slide-up" style="animation-delay: 0.2s; animation-fill-mode: both;">
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
+            <input
+              type="text"
+              id="student-id"
+              placeholder="e.g., CSE2024001"
+              class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-700"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Passcode</label>
+            <input
+              type="password"
+              id="passcode"
+              placeholder="Enter your passcode"
+              class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-gray-700"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full py-4 indigo-gradient text-white font-semibold rounded-2xl shadow-lg btn-squish hover:shadow-xl hover:shadow-indigo-200"
+          >
+            Enter Portal ✨
+          </button>
+        </form>
+        <p class="text-center text-xs text-gray-400 mt-6">
+          Demo: Use any Student ID (e.g., CSE2024001) and passcode
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="dashboard" class="hidden min-h-screen">
+    <!-- Header -->
+    <header class="glass sticky top-0 z-40 border-b border-gray-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center justify-center w-12 h-12 indigo-gradient rounded-2xl shadow-md">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">FRCRCE Library</h1>
+              <p class="text-xs text-gray-500">Engineering Collection</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <div id="welcome-message" class="text-right hidden sm:block">
+              <p class="text-sm font-medium text-indigo-600 animate-pulse">Welcome back,</p>
+              <p id="user-name-display" class="text-lg font-bold text-gray-800"></p>
+            </div>
+            <button
+              id="logout-btn"
+              class="px-4 py-2 text-gray-600 hover:text-indigo-600 font-medium rounded-xl hover:bg-indigo-50 transition-all btn-squish"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Category Tabs -->
+      <div class="flex flex-wrap gap-3 mb-8 animate-slide-up" style="animation-delay: 0.1s; animation-fill-mode: both;">
+        <button
+          data-category="all"
+          class="category-btn px-6 py-3 rounded-2xl font-semibold transition-all btn-squish bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+        >
+          📚 All Books
+        </button>
+        <button
+          data-category="cse"
+          class="category-btn px-6 py-3 rounded-2xl font-semibold transition-all btn-squish bg-white text-gray-700 hover:bg-amber-100"
+        >
+          💻 Computer Science
+        </button>
+        <button
+          data-category="ece"
+          class="category-btn px-6 py-3 rounded-2xl font-semibold transition-all btn-squish bg-white text-gray-700 hover:bg-mint-100"
+        >
+          🔌 Electronics
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-slide-up" style="animation-delay: 0.2s; animation-fill-mode: both;">
+        <div class="glass rounded-2xl p-4 shadow-sm">
+          <p class="text-2xl font-bold text-indigo-600" id="total-books">12</p>
+          <p class="text-xs text-gray-500">Total Books</p>
+        </div>
+        <div class="glass rounded-2xl p-4 shadow-sm">
+          <p class="text-2xl font-bold text-green-600" id="available-books">8</p>
+          <p class="text-xs text-gray-500">Available</p>
+        </div>
+        <div class="glass rounded-2xl p-4 shadow-sm">
+          <p class="text-2xl font-bold text-amber-600" id="issued-books">0</p>
+          <p class="text-xs text-gray-500">Issued</p>
+        </div>
+        <div class="glass rounded-2xl p-4 shadow-sm">
+          <p class="text-2xl font-bold text-purple-600" id="overdue-books">0</p>
+          <p class="text-xs text-gray-500">Overdue</p>
+        </div>
+      </div>
+
+      <!-- Bento Grid Catalog -->
+      <div id="book-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Books will be dynamically inserted here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- E-Book Preview Modal -->
+  <div id="ebook-modal" class="modal-spring modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="modal-backdrop"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-100">
+        <div>
+          <h2 id="modal-book-title" class="text-xl font-bold text-gray-800"></h2>
+          <p id="modal-book-author" class="text-sm text-gray-500"></p>
+        </div>
+        <button
+          id="close-modal"
+          class="p-3 hover:bg-gray-100 rounded-xl transition-all btn-squish"
+        >
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+        <!-- Loading State -->
+        <div id="modal-loading" class="space-y-4">
+          <div class="skeleton h-4 rounded-full"></div>
+          <div class="skeleton h-4 rounded-full w-3/4"></div>
+          <div class="skeleton h-32 rounded-2xl"></div>
+          <div class="skeleton h-4 rounded-full"></div>
+          <div class="skeleton h-4 rounded-full w-5/6"></div>
+        </div>
+
+        <!-- Content State -->
+        <div id="modal-content" class="hidden">
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Book Cover -->
+            <div class="relative">
+              <div
+                id="book-cover"
+                class="aspect-[3/4] rounded-2xl shadow-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-6"
+              >
+                <div class="text-center text-white">
+                  <svg class="w-16 h-16 mx-auto mb-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                  <p id="cover-title" class="text-2xl font-bold"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Book Info -->
+            <div class="space-y-4">
+              <div class="bg-gray-50 rounded-2xl p-4">
+                <h3 class="font-semibold text-gray-800 mb-2">About this book</h3>
+                <p id="book-description" class="text-sm text-gray-600 leading-relaxed"></p>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <span id="book-category-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700"></span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Available</span>
+              </div>
+
+              <div class="pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-gray-500">Pages</span>
+                  <span id="book-pages" class="font-medium text-gray-800"></span>
+                </div>
+                <div class="flex items-center justify-between text-sm mt-2">
+                  <span class="text-gray-500">Edition</span>
+                  <span id="book-edition" class="font-medium text-gray-800"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Pages -->
+          <div class="mt-6">
+            <h3 class="font-semibold text-gray-800 mb-3">Preview Pages</h3>
+            <div class="flex gap-3 overflow-x-auto pb-2">
+              <div class="flex-shrink-0 w-32 h-44 bg-gray-100 rounded-xl flex items-center justify-center cursor-pointer hover:shadow-lg transition-all page-preview" data-page="1">
+                <span class="text-gray-400 text-sm">Page 1</span>
+              </div>
+              <div class="flex-shrink-0 w-32 h-44 bg-gray-100 rounded-xl flex items-center justify-center cursor-pointer hover:shadow-lg transition-all page-preview" data-page="2">
+                <span class="text-gray-400 text-sm">Page 2</span>
+              </div>
+              <div class="flex-shrink-0 w-32 h-44 bg-gray-100 rounded-xl flex items-center justify-center cursor-pointer hover:shadow-lg transition-all page-preview" data-page="3">
+                <span class="text-gray-400 text-sm">Page 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-gray-100 bg-gray-50">
+        <button
+          id="issue-book-btn"
+          class="w-full py-4 indigo-gradient text-white font-semibold rounded-2xl shadow-lg btn-squish hover:shadow-xl"
+        >
+          📖 Issue this Book
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="success-modal" class="modal-spring modal-hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="success-backdrop"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center">
+      <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center animate-bounce-in">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">Success!</h2>
+      <p id="success-message" class="text-gray-500 mb-6">Book issued successfully</p>
+      <button
+        id="close-success"
+        class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl shadow-lg btn-squish transition-all"
+      >
+        Awesome! 🎉
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[70] space-y-3"></div>
+
+  <script>
+    // ==================== DATA ====================
+    const books = [
+      { id: 1, title: "Data Structures", author: "Cormen & Leiserson", category: "cse", pages: 1312, edition: "4th", description: "Comprehensive introduction to algorithms and data structures.", color: "from-amber-400 to-orange-500", available: true },
+      { id: 2, title: "Operating Systems", author: "Silberschatz", category: "cse", pages: 976, edition: "10th", description: "Core concepts of operating systems design and implementation.", color: "from-amber-500 to-red-500", available: true },
+      { id: 3, title: "Digital Electronics", author: "Morris Mano", category: "ece", pages: 672, edition: "5th", description: "Fundamentals of digital logic and computer design.", color: "from-mint-400 to-green-500", available: true },
+      { id: 4, title: "Signals & Systems", author: "Oppenheim", category: "ece", pages: 816, edition: "3rd", description: "Mathematical foundations for signal processing.", color: "from-teal-400 to-cyan-500", available: false },
+      { id: 5, title: "Database Systems", author: "Ramakrishnan", category: "cse", pages: 864, edition: "3rd", description: "Complete guide to database management systems.", color: "from-purple-400 to-pink-500", available: true },
+      { id: 6, title: "Control Systems", author: "Nagrath & Gopal", category: "ece", pages: 568, edition: "7th", description: "Analysis and design of control systems.", color: "from-blue-400 to-indigo-500", available: true },
+      { id: 7, title: "Computer Networks", author: "Tanenbaum", category: "cse", pages: 960, edition: "6th", description: "Comprehensive networking concepts and protocols.", color: "from-rose-400 to-red-500", available: true },
+      { id: 8, title: "Analog Circuits", author: "Sedra & Smith", category: "ece", pages: 1536, edition: "8th", description: "Microelectronic circuits and analog design.", color: "from-emerald-400 to-teal-500", available: true },
+      { id: 9, title: "AI & Machine Learning", author: "Russell & Norvig", category: "cse", pages: 1152, edition: "4th", description: "Modern approach to artificial intelligence.", color: "from-violet-400 to-purple-500", available: false },
+      { id: 10, title: "Embedded Systems", author: "Rajkamal", category: "ece", pages: 512, edition: "4th", description: "Architecture, programming and design of embedded systems.", color: "from-lime-400 to-green-500", available: true },
+      { id: 11, title: "Software Engineering", author: "Pressman", category: "cse", pages: 1104, edition: "9th", description: "Practical approach to software engineering practices.", color: "from-fuchsia-400 to-pink-500", available: true },
+      { id: 12, title: "VLSI Design", author: "Weste & Harris", category: "ece", pages: 880, edition: "5th", description: "CMOS VLSI design concepts and methodologies.", color: "from-sky-400 to-blue-500", available: true }
+    ];
+
+    let currentUser = null;
+    let issuedBooks = [];
+    let currentModalBook = null;
+
+    // ==================== DOM ELEMENTS ====================
+    const loginScreen = document.getElementById('login-screen');
+    const dashboard = document.getElementById('dashboard');
+    const loginForm = document.getElementById('login-form');
+    const studentIdInput = document.getElementById('student-id');
+    const passcodeInput = document.getElementById('passcode');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const userNameDisplay = document.getElementById('user-name-display');
+    const logoutBtn = document.getElementById('logout-btn');
+    const bookGrid = document.getElementById('book-grid');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const ebookModal = document.getElementById('ebook-modal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const closeModalBtn = document.getElementById('close-modal');
+    const successModal = document.getElementById('success-modal');
+    const successBackdrop = document.getElementById('success-backdrop');
+    const closeSuccessBtn = document.getElementById('close-success');
+    const issueBookBtn = document.getElementById('issue-book-btn');
+    const toastContainer = document.getElementById('toast-container');
+    const modalLoading = document.getElementById('modal-loading');
+    const modalContent = document.getElementById('modal-content');
+
+    // ==================== AUTHENTICATION ====================
+    function parseStudentId(id) {
+      const match = id.match(/^([A-Z]{3})(\d{4})(\d{3})$/i);
+      if (match) {
+        return {
+          department: match[1].toUpperCase(),
+          year: match[2],
+          serial: match[3]
+        };
+      }
+      return null;
+    }
+
+    function generateUserName(parsed) {
+      const names = {
+        CSE: ['Alex Chen', 'Jordan Smith', 'Taylor Wong', 'Morgan Lee'],
+        ECE: ['Sam Patel', 'Riley Kumar', 'Casey Singh', 'Avery Rao']
+      };
+      const dept = names[parsed.department] || names.CSE;
+      const randomName = dept[parseInt(parsed.serial) % dept.length];
+      return `${randomName} (${parsed.department}${parsed.year})`;
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const studentId = studentIdInput.value.trim().toUpperCase();
+      const passcode = passcodeInput.value;
+
+      if (!studentId || !passcode) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      const parsed = parseStudentId(studentId);
+      if (!parsed) {
+        showToast('Invalid Student ID format', 'error');
+        return;
+      }
+
+      // Mock authentication
+      currentUser = {
+        id: studentId,
+        name: generateUserName(parsed),
+        department: parsed.department
+      };
+
+      // Animate transition
+      loginScreen.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      loginScreen.style.transform = 'translateY(-100%)';
+      loginScreen.style.opacity = '0';
+
+      setTimeout(() => {
+        loginScreen.classList.add('hidden');
+        dashboard.classList.remove('hidden');
+        userNameDisplay.textContent = currentUser.name;
+        welcomeMessage.classList.remove('hidden');
+        welcomeMessage.classList.add('animate-slide-up');
+        renderBooks('all');
+        updateStats();
+        showToast(`Welcome back, ${currentUser.name.split(' ')[0]}!`, 'success');
+      }, 500);
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      dashboard.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+      setTimeout(() => {
+        loginScreen.style.transform = '';
+        loginScreen.style.opacity = '';
+      }, 50);
+      currentUser = null;
+      studentIdInput.value = '';
+      passcodeInput.value = '';
+      showToast('Logged out successfully', 'info');
+    });
+
+    // ==================== BOOK CATALOG ====================
+    function renderBooks(category) {
+      bookGrid.innerHTML = '';
+      const filtered = category === 'all'
+        ? books
+        : books.filter(b => b.category === category);
+
+      filtered.forEach((book, index) => {
+        const card = document.createElement('div');
+        card.className = `bento-card glass rounded-3xl p-5 shadow-sm cursor-pointer opacity-0 animate-slide-up`;
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.style.animationFillMode = 'both';
+        card.onclick = () => openBookModal(book);
+
+        const categoryColor = book.category === 'cse'
+          ? 'bg-amber-100 text-amber-700'
+          : 'bg-mint-100 text-mint-700';
+        const categoryIcon = book.category === 'cse' ? '💻' : '🔌';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-16 h-20 rounded-xl bg-gradient-to-br ${book.color} flex items-center justify-center shadow-md">
+              <svg class="w-8 h-8 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </div>
+            <span class="px-2 py-1 ${categoryColor} rounded-full text-xs font-medium flex items-center gap-1">
+              ${categoryIcon} ${book.category.toUpperCase()}
+            </span>
+          </div>
+          <h3 class="font-bold text-gray-800 mb-1 truncate">${book.title}</h3>
+          <p class="text-sm text-gray-500 mb-3">${book.author}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">${book.pages} pages</span>
+            <span class="px-2 py-1 ${book.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} rounded-full text-xs font-medium">
+              ${book.available ? 'Available' : 'Issued'}
+            </span>
+          </div>
+        `;
+
+        bookGrid.appendChild(card);
+      });
+    }
+
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => {
+          b.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg', 'shadow-indigo-200');
+          b.classList.add('bg-white', 'text-gray-700');
+        });
+        btn.classList.remove('bg-white', 'text-gray-700');
+        btn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg', 'shadow-indigo-200');
+
+        const category = btn.dataset.category;
+        renderBooks(category);
+      });
+    });
+
+    function updateStats() {
+      const available = books.filter(b => b.available).length;
+      const issued = issuedBooks.length;
+      document.getElementById('total-books').textContent = books.length;
+      document.getElementById('available-books').textContent = available;
+      document.getElementById('issued-books').textContent = issued;
+    }
+
+    // ==================== E-BOOK MODAL ====================
+    function openBookModal(book) {
+      if (!book.available) {
+        showToast('This book is currently issued', 'error');
+        return;
+      }
+
+      currentModalBook = book;
+      document.getElementById('modal-book-title').textContent = book.title;
+      document.getElementById('modal-book-author').textContent = book.author;
+      document.getElementById('cover-title').textContent = book.title.split(' ').slice(0, 2).join(' ');
+      document.getElementById('book-description').textContent = book.description;
+      document.getElementById('book-category-badge').textContent = book.category === 'cse' ? 'Computer Science' : 'Electronics';
+      document.getElementById('book-pages').textContent = book.pages;
+      document.getElementById('book-edition').textContent = book.edition;
+
+      // Show loading, then content
+      modalLoading.classList.remove('hidden');
+      modalContent.classList.add('hidden');
+
+      setTimeout(() => {
+        modalLoading.classList.add('hidden');
+        modalContent.classList.remove('hidden');
+        modalContent.classList.add('animate-fade-in');
+      }, 800);
+
+      ebookModal.classList.remove('modal-hidden');
+      setTimeout(() => {
+        ebookModal.classList.add('modal-visible');
+      }, 10);
+    }
+
+    function closeBookModal() {
+      ebookModal.classList.remove('modal-visible');
+      setTimeout(() => {
+        ebookModal.classList.add('modal-hidden');
+        currentModalBook = null;
+      }, 500);
+    }
+
+    closeModalBtn.addEventListener('click', closeBookModal);
+    modalBackdrop.addEventListener('click', closeBookModal);
+
+    // Page preview with flip animation
+    document.querySelectorAll('.page-preview').forEach(page => {
+      page.addEventListener('click', function() {
+        const pageNum = this.dataset.page;
+        showToast(`Previewing page ${pageNum}...`, 'info');
+      });
+    });
+
+    // ==================== ISSUE BOOK ====================
+    issueBookBtn.addEventListener('click', () => {
+      if (!currentModalBook) return;
+
+      // Update book availability
+      const book = books.find(b => b.id === currentModalBook.id);
+      if (book) {
+        book.available = false;
+        issuedBooks.push(book.id);
+      }
+
+      closeBookModal();
+
+      // Show success modal with confetti
+      setTimeout(() => {
+        document.getElementById('success-message').textContent = `"${book.title}" has been issued to you!`;
+        successModal.classList.remove('modal-hidden');
+        setTimeout(() => {
+          successModal.classList.add('modal-visible');
+          createConfetti();
+        }, 10);
+        updateStats();
+        renderBooks('all');
+      }, 300);
+    });
+
+    closeSuccessBtn.addEventListener('click', () => {
+      successModal.classList.remove('modal-visible');
+      setTimeout(() => {
+        successModal.classList.add('modal-hidden');
+      }, 500);
+    });
+
+    successBackdrop.addEventListener('click', () => {
+      successModal.classList.remove('modal-visible');
+      setTimeout(() => {
+        successModal.classList.add('modal-hidden');
+      }, 500);
+    });
+
+    function createConfetti() {
+      const colors = ['#6366F1', '#A7F3D0', '#FDE68A', '#F472B6', '#60A5FA'];
+      const modal = successModal.querySelector('.relative');
+
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = `${Math.random() * 100}%`;
+          confetti.style.top = '-10px';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+          modal.appendChild(confetti);
+
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 50);
+      }
+    }
+
+    // ==================== TOAST NOTIFICATIONS ====================
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'toast-enter px-5 py-4 rounded-2xl shadow-xl flex items-center space-x-3 max-w-sm';
+
+      const icons = {
+        success: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+        error: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+        info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      };
+
+      const bgColors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-indigo-500'
+      };
+
+      toast.innerHTML = `
+        <div class="${bgColors[type]} text-white rounded-full p-1">${icons[type]}</div>
+        <p class="text-white font-medium text-sm">${message}</p>
+      `;
+
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-enter-active');
+      });
+
+      // Animate out
+      setTimeout(() => {
+        toast.classList.remove('toast-enter-active');
+        toast.classList.add('toast-exit');
+        setTimeout(() => {
+          toast.classList.remove('toast-exit');
+          toast.classList.add('toast-exit-active');
+          setTimeout(() => toast.remove(), 300);
+        }, 300);
+      }, 3000);
+    }
+
+    // ==================== KEYBOARD SHORTCUTS ====================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!ebookModal.classList.contains('modal-hidden')) {
+          closeBookModal();
+        }
+        if (!successModal.classList.contains('modal-hidden')) {
+          successModal.classList.remove('modal-visible');
+          setTimeout(() => successModal.classList.add('modal-hidden'), 500);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
